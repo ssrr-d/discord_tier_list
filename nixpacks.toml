@@ -1,0 +1,2 @@
+[phases.setup]
+nixPkgs = ["...", "fontconfig", "freefont_ttf"]
