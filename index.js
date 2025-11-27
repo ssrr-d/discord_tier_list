@@ -76,7 +76,7 @@ client.on('interactionCreate', async interaction => {
                 avatarUrl: member.displayAvatarURL({ extension: 'png' })
             };
 
-            await interaction.reply({ content: `Selected **${member.user.username}**. Now click a Tier button!`, ephemeral: true });
+            await interaction.deferUpdate();
         }
     } else if (interaction.isButton()) {
         if (interaction.customId.startsWith('tier_btn_')) {
