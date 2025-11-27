@@ -48,8 +48,8 @@ module.exports = {
             }
             currentRow.addComponents(
                 new ButtonBuilder()
-                    .setCustomId(`tier_btn_${index}`) // Use index to reference label
-                    .setLabel(label.substring(0, 80)) // Discord limit
+                    .setCustomId(`tier_btn_${index}`)
+                    .setLabel(label.substring(0, 80))
                     .setStyle(ButtonStyle.Primary)
             );
         });
@@ -65,6 +65,7 @@ module.exports = {
         }
 
         finishRow.addComponents(
+            new ButtonBuilder().setCustomId('tier_btn_show_unranked').setLabel('未配置メンバー').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('tier_btn_finish').setLabel('Finish').setStyle(ButtonStyle.Success)
         );
 
@@ -79,9 +80,10 @@ module.exports = {
         const { sessionManager } = require('../utils/sessionManager');
         sessionManager.set(message.id, {
             tierData,
-            tierLabels, // Store labels to map back from index
+            tierLabels,
             selectedUser: null,
-            ownerId: interaction.user.id
+            ownerId: interaction.user.id,
+            guildId: interaction.guild.id
         });
     },
 };

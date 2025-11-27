@@ -33,6 +33,26 @@ async function drawTierList(tierData, tierLabels) {
         const tier = tierLabels[i];
         const y = i * ROW_HEIGHT;
 
+        // Draw Tier Label Background
+        ctx.fillStyle = DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+        ctx.fillRect(0, y, LABEL_WIDTH, ROW_HEIGHT);
+
+        // Draw Tier Label Text
+        ctx.font = 'bold 35px "Noto Sans CJK JP", "DejaVu Sans", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Draw white stroke for visibility
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.strokeText(tier, LABEL_WIDTH / 2, y + ROW_HEIGHT / 2);
+
+        // Draw black fill
+        ctx.fillStyle = '#000000';
+        ctx.fillText(tier, LABEL_WIDTH / 2, y + ROW_HEIGHT / 2);
+
+        // Draw Separator Line
+        ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, y + ROW_HEIGHT);

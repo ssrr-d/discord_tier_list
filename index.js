@@ -71,14 +71,39 @@ client.on('interactionCreate', async interaction => {
             }
         } else if (interaction.isButton()) {
             if (interaction.customId.startsWith('tier_btn_')) {
-                if (interaction.customId === 'tier_btn_finish') {
+                if (interaction.customId === 'tier_btn_show_unranked') {
                     const session = sessionManager.get(interaction.message.id);
                     if (!session) {
                         return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
                     }
 
-                    if (interaction.user.id !== session.ownerId) {
-                        return interaction.reply({ content: 'Only the session owner can finish this tier list.', ephemeral: true });
+                    // Get all ranked user IDs
+                    const rankedUserIds = new Set();
+                    for (const tier in session.tierData) {
+                        session.tierData[tier].forEach(user => rankedUserIds.add(user.id));
+                    }
+
+                    // Fetch all guild members
+                    const guild = interaction.guild;
+                    await guild.members.fetch();
+                    const allMembers = guild.members.cache.filter(m => !m.user.bot);
+
+                    // Find unranked members
+                    const unrankedMembers = allMembers.filter(m => !rankedUserIds.has(m.id));
+
+                    if (unrankedMembers.size === 0) {
+                        return interaction.reply({ content: '全員配置済みです！', ephemeral: true });
+                    }
+
+                    const unrankedList = unrankedMembers.map(m => `• ${m.user.username}`).join('\n');
+                    return interaction.reply({
+                        content: `**未配置メンバー (${unrankedMembers.size}人):**\n${unrankedList}`,
+                        ephemeral: true
+                    });
+                } else if (interaction.customId === 'tier_btn_finish') {
+                    const session = sessionManager.get(interaction.message.id);
+                    if (!session) {
+                        return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
                     }
 
                     // Remove components
@@ -93,10 +118,6 @@ client.on('interactionCreate', async interaction => {
                     const session = sessionManager.get(interaction.message.id);
                     if (!session) {
                         return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
-                    }
-
-                    if (interaction.user.id !== session.ownerId) {
-                        return interaction.reply({ content: 'Only the session owner can edit this tier list.', ephemeral: true });
                     }
 
                     if (!session.selectedUser) {
