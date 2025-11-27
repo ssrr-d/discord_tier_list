@@ -1,4 +1,3 @@
-```javascript
 const { SlashCommandBuilder, ActionRowBuilder, UserSelectMenuBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require('discord.js');
 const { drawTierList } = require('../utils/tierListCanvas');
 
@@ -6,7 +5,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('tierlist')
         .setDescription('Start a new Tier List session')
-        .addStringOption(option => 
+        .addStringOption(option =>
             option.setName('tiers')
                 .setDescription('Comma separated tier names (e.g. S,A,B,C,D)')
                 .setRequired(false)),
@@ -18,7 +17,7 @@ module.exports = {
         const tierLabels = tiersInput ? tiersInput.split(',').map(t => t.trim()).filter(t => t.length > 0) : ['S', 'A', 'B', 'C', 'D'];
 
         if (tierLabels.length === 0 || tierLabels.length > 10) {
-             return interaction.editReply({ content: 'Please provide between 1 and 10 tier names.' });
+            return interaction.editReply({ content: 'Please provide between 1 and 10 tier names.' });
         }
 
         // Initial empty state
@@ -41,7 +40,7 @@ module.exports = {
         // Dynamic Buttons
         const buttonRows = [];
         let currentRow = new ActionRowBuilder();
-        
+
         tierLabels.forEach((label, index) => {
             if (currentRow.components.length >= 5) {
                 buttonRows.push(currentRow);
@@ -49,7 +48,7 @@ module.exports = {
             }
             currentRow.addComponents(
                 new ButtonBuilder()
-                    .setCustomId(`tier_btn_${ index } `) // Use index to reference label
+                    .setCustomId(`tier_btn_${index}`) // Use index to reference label
                     .setLabel(label.substring(0, 80)) // Discord limit
                     .setStyle(ButtonStyle.Primary)
             );
@@ -64,7 +63,7 @@ module.exports = {
             finishRow = new ActionRowBuilder();
             buttonRows.push(finishRow);
         }
-        
+
         finishRow.addComponents(
             new ButtonBuilder().setCustomId('tier_btn_finish').setLabel('Finish').setStyle(ButtonStyle.Success)
         );
@@ -76,12 +75,6 @@ module.exports = {
             components: [row1, ...buttonRows]
         });
 
-        // Initialize session state (we need a way to store this globally or handle it in the interaction event)
-        // For now, we will rely on the interaction handler to reconstruct or fetch state.
-        // Since we don't have a database, we'll use a global Map in index.js or a singleton.
-        // For this prototype, let's assume we can't easily share state without a singleton.
-        // We will implement a simple state manager in the next step.
-
         // Store initial state
         const { sessionManager } = require('../utils/sessionManager');
         sessionManager.set(message.id, {
@@ -92,4 +85,3 @@ module.exports = {
         });
     },
 };
-```
