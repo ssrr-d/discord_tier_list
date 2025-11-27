@@ -39,10 +39,17 @@ async function drawTierList(tierData, tierLabels) {
         ctx.fillRect(0, y, LABEL_WIDTH, ROW_HEIGHT);
 
         // Draw Tier Label Text
-        ctx.fillStyle = '#000000';
-        ctx.font = 'bold 30px "DejaVu Sans", Arial, sans-serif';
+        ctx.font = 'bold 50px "DejaVu Sans", Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+
+        // Draw white stroke for visibility
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.strokeText(tier, LABEL_WIDTH / 2, y + ROW_HEIGHT / 2);
+
+        // Draw black fill
+        ctx.fillStyle = '#000000';
         ctx.fillText(tier, LABEL_WIDTH / 2, y + ROW_HEIGHT / 2);
 
         // Draw Separator Line
