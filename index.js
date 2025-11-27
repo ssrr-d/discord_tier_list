@@ -89,7 +89,7 @@ client.on('interactionCreate', async interaction => {
 
                     sessionManager.delete(interaction.message.id);
                 } else {
-                    // Tier selection buttons (S, A, B, C, D)
+                    // Tier selection buttons (tier_btn_INDEX)
                     const session = sessionManager.get(interaction.message.id);
                     if (!session) {
                         return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
@@ -103,7 +103,13 @@ client.on('interactionCreate', async interaction => {
                         return interaction.reply({ content: 'Please select a user first!', ephemeral: true });
                     }
 
-                    const tier = interaction.customId.split('_')[2]; // S, A, B, C, D
+                    const tierIndex = parseInt(interaction.customId.split('_')[2]);
+                    const tierLabel = session.tierLabels[tierIndex];
+
+                    if (!tierLabel) {
+                        return interaction.reply({ content: 'Invalid tier.', ephemeral: true });
+                    }
+
                     const user = session.selectedUser;
 
                     // Remove user from other tiers
@@ -112,11 +118,11 @@ client.on('interactionCreate', async interaction => {
                     }
 
                     // Add to new tier
-                    session.tierData[tier].push(user);
+                    session.tierData[tierLabel].push(user);
 
                     // Redraw
                     await interaction.deferUpdate();
-                    const imageBuffer = await drawTierList(session.tierData);
+                    const imageBuffer = await drawTierList(session.tierData, session.tierLabels);
                     const attachment = new AttachmentBuilder(imageBuffer, { name: 'tierlist.png' });
 
                     await interaction.editReply({
