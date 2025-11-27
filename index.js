@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Collection, AttachmentBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, UserSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const { sessionManager } = require('./utils/sessionManager');
@@ -42,6 +42,84 @@ client.on('interactionCreate', async interaction => {
             if (!command) return;
 
             await command.execute(interaction);
+        } else if (interaction.isModalSubmit()) {
+            if (interaction.customId === 'edit_tier_names_modal') {
+                const session = sessionManager.get(interaction.message.id);
+                if (!session) {
+                    return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
+                }
+
+                // Get new tier names from modal
+                const newNamesInput = interaction.fields.getTextInputValue('tier_names_input');
+                const newTierLabels = newNamesInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+
+                if (newTierLabels.length !== session.tierLabels.length) {
+                    return interaction.reply({
+                        content: `Tier数が一致しません。現在: ${session.tierLabels.length}個、入力: ${newTierLabels.length}個`,
+                        ephemeral: true
+                    });
+                }
+
+                // Update tier data with new labels
+                const newTierData = {};
+                session.tierLabels.forEach((oldLabel, index) => {
+                    const newLabel = newTierLabels[index];
+                    newTierData[newLabel] = session.tierData[oldLabel] || [];
+                });
+
+                session.tierData = newTierData;
+                session.tierLabels = newTierLabels;
+
+                // Redraw
+                await interaction.deferUpdate();
+                const imageBuffer = await drawTierList(session.tierData, session.tierLabels);
+                const attachment = new AttachmentBuilder(imageBuffer, { name: 'tierlist.png' });
+
+                // Rebuild buttons with new labels
+                const buttonRows = [];
+                let currentRow = new ActionRowBuilder();
+
+                newTierLabels.forEach((label, index) => {
+                    if (currentRow.components.length >= 5) {
+                        buttonRows.push(currentRow);
+                        currentRow = new ActionRowBuilder();
+                    }
+                    currentRow.addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`tier_btn_${index}`)
+                            .setLabel(label.substring(0, 80))
+                            .setStyle(ButtonStyle.Primary)
+                    );
+                });
+                buttonRows.push(currentRow);
+
+                let finishRow;
+                if (buttonRows[buttonRows.length - 1].components.length < 5) {
+                    finishRow = buttonRows[buttonRows.length - 1];
+                } else {
+                    finishRow = new ActionRowBuilder();
+                    buttonRows.push(finishRow);
+                }
+
+                finishRow.addComponents(
+                    new ButtonBuilder().setCustomId('tier_btn_edit_names').setLabel('Tier名編集').setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId('tier_btn_show_unranked').setLabel('未配置メンバー').setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId('tier_btn_finish').setLabel('Finish').setStyle(ButtonStyle.Success)
+                );
+
+                const userSelect = new UserSelectMenuBuilder()
+                    .setCustomId('tier_select_user')
+                    .setPlaceholder('Select a user to rank')
+                    .setMinValues(1)
+                    .setMaxValues(1);
+
+                const row1 = new ActionRowBuilder().addComponents(userSelect);
+
+                await interaction.editReply({
+                    files: [attachment],
+                    components: [row1, ...buttonRows]
+                });
+            }
         } else if (interaction.isUserSelectMenu()) {
             if (interaction.customId === 'tier_select_user') {
                 const session = sessionManager.get(interaction.message.id);
@@ -71,7 +149,30 @@ client.on('interactionCreate', async interaction => {
             }
         } else if (interaction.isButton()) {
             if (interaction.customId.startsWith('tier_btn_')) {
-                if (interaction.customId === 'tier_btn_show_unranked') {
+                if (interaction.customId === 'tier_btn_edit_names') {
+                    const session = sessionManager.get(interaction.message.id);
+                    if (!session) {
+                        return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
+                    }
+
+                    const { ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+
+                    const modal = new ModalBuilder()
+                        .setCustomId('edit_tier_names_modal')
+                        .setTitle('Tier名を編集');
+
+                    const tierNamesInput = new TextInputBuilder()
+                        .setCustomId('tier_names_input')
+                        .setLabel('Tier名（カンマ区切り）')
+                        .setStyle(TextInputStyle.Short)
+                        .setValue(session.tierLabels.join(', '))
+                        .setRequired(true);
+
+                    const row = new ActionRowBuilder().addComponents(tierNamesInput);
+                    modal.addComponents(row);
+
+                    await interaction.showModal(modal);
+                } else if (interaction.customId === 'tier_btn_show_unranked') {
                     const session = sessionManager.get(interaction.message.id);
                     if (!session) {
                         return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });

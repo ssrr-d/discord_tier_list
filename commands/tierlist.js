@@ -56,34 +56,19 @@ module.exports = {
         buttonRows.push(currentRow);
 
         // Add Finish button to a new row if needed, or append to last if space exists
-        let finishRow;
-        if (buttonRows[buttonRows.length - 1].components.length < 5) {
-            finishRow = buttonRows[buttonRows.length - 1];
-        } else {
-            finishRow = new ActionRowBuilder();
-            buttonRows.push(finishRow);
-        }
-
-        finishRow.addComponents(
-            new ButtonBuilder().setCustomId('tier_btn_show_unranked').setLabel('未配置メンバー').setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder().setCustomId('tier_btn_finish').setLabel('Finish').setStyle(ButtonStyle.Success)
-        );
-
-        // Send message
-        const message = await interaction.editReply({
-            content: 'Select a user and then click a Tier button!',
+        content: 'Select a user and then click a Tier button!',
             files: [attachment],
-            components: [row1, ...buttonRows]
-        });
+                components: [row1, ...buttonRows]
+    });
 
-        // Store initial state
-        const { sessionManager } = require('../utils/sessionManager');
-        sessionManager.set(message.id, {
-            tierData,
-            tierLabels,
-            selectedUser: null,
-            ownerId: interaction.user.id,
-            guildId: interaction.guild.id
-        });
-    },
+    // Store initial state
+    const { sessionManager } = require('../utils/sessionManager');
+    sessionManager.set(message.id, {
+        tierData,
+        tierLabels,
+        selectedUser: null,
+        ownerId: interaction.user.id,
+        guildId: interaction.guild.id
+    });
+},
 };
