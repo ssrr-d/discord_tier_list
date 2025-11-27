@@ -163,40 +163,6 @@ client.on('interactionCreate', async interaction => {
                     // Toggle filter state
                     session.filterUnranked = !session.filterUnranked;
 
-                    // Get ranked user IDs
-                    const rankedUserIds = new Set();
-                    for (const tier in session.tierData) {
-                        session.tierData[tier].forEach(user => rankedUserIds.add(user.id));
-                    }
-
-                    // Fetch all guild members
-                    const guild = interaction.guild;
-                    await guild.members.fetch();
-                    const allMembers = guild.members.cache.filter(m => !m.user.bot);
-
-                    // Create user select menu
-                    const userSelect = new UserSelectMenuBuilder()
-                        .setCustomId('tier_select_user')
-                        .setMinValues(1)
-                        .setMaxValues(1);
-
-                    if (session.filterUnranked) {
-                        // Filter to only unranked members
-                        const unrankedMembers = allMembers.filter(m => !rankedUserIds.has(m.id));
-
-                        if (unrankedMembers.size === 0) {
-                            return interaction.reply({ content: '全員配置済みです！', ephemeral: true });
-                        }
-
-                        userSelect.setPlaceholder(`未配置メンバーのみ (${unrankedMembers.size}人)`);
-                        // Note: UserSelectMenu doesn't support filtering by specific users in Discord.js
-                        // We'll just change the placeholder to indicate the filter is active
-                    } else {
-                        userSelect.setPlaceholder('Select a user to rank');
-                    }
-
-                    const row1 = new ActionRowBuilder().addComponents(userSelect);
-
                     // Rebuild button rows
                     const buttonRows = [];
                     let currentRow = new ActionRowBuilder();
@@ -269,9 +235,8 @@ client.on('interactionCreate', async interaction => {
                         session.tierData[tier].forEach(user => rankedUserIds.add(user.id));
                     }
 
-                    // Fetch all guild members
+                    // Use cached guild members
                     const guild = interaction.guild;
-                    await guild.members.fetch();
                     const allMembers = guild.members.cache.filter(m => !m.user.bot);
 
                     // Find unranked members
