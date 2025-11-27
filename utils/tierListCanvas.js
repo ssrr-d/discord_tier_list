@@ -1,8 +1,8 @@
 const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
 
-// Register a default font if needed, though usually system fonts work or we can skip for now
-// GlobalFonts.registerFromPath(path.join(__dirname, '..', 'fonts', 'Roboto-Regular.ttf'), 'Roboto');
+// Register the font
+GlobalFonts.registerFromPath(path.join(__dirname, '..', 'fonts', 'Roboto-Bold.ttf'), 'Roboto');
 
 const TIER_COLORS = {
     S: '#ff7f7f',
@@ -39,7 +39,7 @@ async function drawTierList(tierData) {
 
         // Draw Tier Label Text
         ctx.fillStyle = '#000000';
-        ctx.font = 'bold 40px Arial';
+        ctx.font = 'bold 40px Roboto'; // Use the registered font family
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(tier, LABEL_WIDTH / 2, y + ROW_HEIGHT / 2);
