@@ -1,8 +1,9 @@
 FROM node:18-slim
 
-# Install fonts
+# Install fonts (including Japanese)
 RUN apt-get update && apt-get install -y \
     fonts-liberation \
+    fonts-noto-cjk \
     fontconfig \
     && fc-cache -f -v \
     && rm -rf /var/lib/apt/lists/*
