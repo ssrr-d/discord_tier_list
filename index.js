@@ -149,67 +149,7 @@ client.on('interactionCreate', async interaction => {
             }
         } else if (interaction.isButton()) {
             if (interaction.customId.startsWith('tier_btn_')) {
-                if (interaction.customId === 'tier_btn_toggle_filter') {
-                    const session = sessionManager.get(interaction.message.id);
-                    if (!session) {
-                        return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
-                    }
-
-                    // Initialize filterUnranked if not set
-                    if (session.filterUnranked === undefined) {
-                        session.filterUnranked = false;
-                    }
-
-                    // Toggle filter state
-                    session.filterUnranked = !session.filterUnranked;
-
-                    // Rebuild button rows
-                    const buttonRows = [];
-                    let currentRow = new ActionRowBuilder();
-
-                    session.tierLabels.forEach((label, index) => {
-                        if (currentRow.components.length >= 5) {
-                            buttonRows.push(currentRow);
-                            currentRow = new ActionRowBuilder();
-                        }
-                        currentRow.addComponents(
-                            new ButtonBuilder()
-                                .setCustomId(`tier_btn_${index}`)
-                                .setLabel(label.substring(0, 80))
-                                .setStyle(ButtonStyle.Primary)
-                        );
-                    });
-                    buttonRows.push(currentRow);
-
-                    let finishRow;
-                    if (buttonRows[buttonRows.length - 1].components.length < 5) {
-                        finishRow = buttonRows[buttonRows.length - 1];
-                    } else {
-                        finishRow = new ActionRowBuilder();
-                        buttonRows.push(finishRow);
-                    }
-
-                    const filterLabel = session.filterUnranked ? '全員表示' : '未配置のみ表示';
-                    finishRow.addComponents(
-                        new ButtonBuilder().setCustomId('tier_btn_toggle_filter').setLabel(filterLabel).setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder().setCustomId('tier_btn_edit_names').setLabel('Tier名編集').setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder().setCustomId('tier_btn_show_unranked').setLabel('未配置メンバー').setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder().setCustomId('tier_btn_finish').setLabel('Finish').setStyle(ButtonStyle.Success)
-                    );
-
-                    // Create user select menu
-                    const userSelect = new UserSelectMenuBuilder()
-                        .setCustomId('tier_select_user')
-                        .setPlaceholder(session.filterUnranked ? '未配置メンバーのみ' : 'Select a user to rank')
-                        .setMinValues(1)
-                        .setMaxValues(1);
-
-                    const row1 = new ActionRowBuilder().addComponents(userSelect);
-
-                    await interaction.update({
-                        components: [row1, ...buttonRows]
-                    });
-                } else if (interaction.customId === 'tier_btn_edit_names') {
+                if (interaction.customId === 'tier_btn_edit_names') {
                     const session = sessionManager.get(interaction.message.id);
                     if (!session) {
                         return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
