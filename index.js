@@ -197,6 +197,15 @@ client.on('interactionCreate', async interaction => {
                         new ButtonBuilder().setCustomId('tier_btn_finish').setLabel('Finish').setStyle(ButtonStyle.Success)
                     );
 
+                    // Create user select menu
+                    const userSelect = new UserSelectMenuBuilder()
+                        .setCustomId('tier_select_user')
+                        .setPlaceholder(session.filterUnranked ? '未配置メンバーのみ' : 'Select a user to rank')
+                        .setMinValues(1)
+                        .setMaxValues(1);
+
+                    const row1 = new ActionRowBuilder().addComponents(userSelect);
+
                     await interaction.update({
                         components: [row1, ...buttonRows]
                     });
