@@ -155,6 +155,11 @@ client.on('interactionCreate', async interaction => {
                         return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
                     }
 
+                    // Initialize filterUnranked if not set
+                    if (session.filterUnranked === undefined) {
+                        session.filterUnranked = false;
+                    }
+
                     // Toggle filter state
                     session.filterUnranked = !session.filterUnranked;
 
