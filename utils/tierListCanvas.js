@@ -40,7 +40,7 @@ async function drawTierList(tierData, tierLabels) {
 
         // Draw Tier Label Text
         ctx.fillStyle = '#000000';
-        ctx.font = 'bold 30px sans-serif';
+        ctx.font = 'bold 30px "DejaVu Sans", Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(tier, LABEL_WIDTH / 2, y + ROW_HEIGHT / 2);
