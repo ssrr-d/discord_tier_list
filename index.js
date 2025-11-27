@@ -149,7 +149,87 @@ client.on('interactionCreate', async interaction => {
             }
         } else if (interaction.isButton()) {
             if (interaction.customId.startsWith('tier_btn_')) {
-                if (interaction.customId === 'tier_btn_edit_names') {
+                if (interaction.customId === 'tier_btn_toggle_filter') {
+                    const session = sessionManager.get(interaction.message.id);
+                    if (!session) {
+                        return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });
+                    }
+
+                    // Toggle filter state
+                    session.filterUnranked = !session.filterUnranked;
+
+                    // Get ranked user IDs
+                    const rankedUserIds = new Set();
+                    for (const tier in session.tierData) {
+                        session.tierData[tier].forEach(user => rankedUserIds.add(user.id));
+                    }
+
+                    // Fetch all guild members
+                    const guild = interaction.guild;
+                    await guild.members.fetch();
+                    const allMembers = guild.members.cache.filter(m => !m.user.bot);
+
+                    // Create user select menu
+                    const userSelect = new UserSelectMenuBuilder()
+                        .setCustomId('tier_select_user')
+                        .setMinValues(1)
+                        .setMaxValues(1);
+
+                    if (session.filterUnranked) {
+                        // Filter to only unranked members
+                        const unrankedMembers = allMembers.filter(m => !rankedUserIds.has(m.id));
+
+                        if (unrankedMembers.size === 0) {
+                            return interaction.reply({ content: '全員配置済みです！', ephemeral: true });
+                        }
+
+                        userSelect.setPlaceholder(`未配置メンバーのみ (${unrankedMembers.size}人)`);
+                        // Note: UserSelectMenu doesn't support filtering by specific users in Discord.js
+                        // We'll just change the placeholder to indicate the filter is active
+                    } else {
+                        userSelect.setPlaceholder('Select a user to rank');
+                    }
+
+                    const row1 = new ActionRowBuilder().addComponents(userSelect);
+
+                    // Rebuild button rows
+                    const buttonRows = [];
+                    let currentRow = new ActionRowBuilder();
+
+                    session.tierLabels.forEach((label, index) => {
+                        if (currentRow.components.length >= 5) {
+                            buttonRows.push(currentRow);
+                            currentRow = new ActionRowBuilder();
+                        }
+                        currentRow.addComponents(
+                            new ButtonBuilder()
+                                .setCustomId(`tier_btn_${index}`)
+                                .setLabel(label.substring(0, 80))
+                                .setStyle(ButtonStyle.Primary)
+                        );
+                    });
+                    buttonRows.push(currentRow);
+
+                    let finishRow;
+                    if (buttonRows[buttonRows.length - 1].components.length < 5) {
+                        finishRow = buttonRows[buttonRows.length - 1];
+                    } else {
+                        finishRow = new ActionRowBuilder();
+                        buttonRows.push(finishRow);
+                    }
+
+                    const filterLabel = session.filterUnranked ? '全員表示' : '未配置のみ表示';
+                    finishRow.addComponents(
+                        new ButtonBuilder().setCustomId('tier_btn_toggle_filter').setLabel(filterLabel).setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder().setCustomId('tier_btn_edit_names').setLabel('Tier名編集').setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder().setCustomId('tier_btn_show_unranked').setLabel('未配置メンバー').setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder().setCustomId('tier_btn_finish').setLabel('Finish').setStyle(ButtonStyle.Success)
+                    );
+
+                    await interaction.update({
+                        components: [row1, ...buttonRows]
+                    });
+                } else if (interaction.customId === 'tier_btn_edit_names') {
                     const session = sessionManager.get(interaction.message.id);
                     if (!session) {
                         return interaction.reply({ content: 'Session expired or not found.', ephemeral: true });

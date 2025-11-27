@@ -56,19 +56,37 @@ module.exports = {
         buttonRows.push(currentRow);
 
         // Add Finish button to a new row if needed, or append to last if space exists
-        content: 'Select a user and then click a Tier button!',
-            files: [attachment],
-                components: [row1, ...buttonRows]
-    });
+        let finishRow;
+        if (buttonRows[buttonRows.length - 1].components.length < 5) {
+            finishRow = buttonRows[buttonRows.length - 1];
+        } else {
+            finishRow = new ActionRowBuilder();
+            buttonRows.push(finishRow);
+        }
 
-    // Store initial state
-    const { sessionManager } = require('../utils/sessionManager');
-    sessionManager.set(message.id, {
-        tierData,
-        tierLabels,
-        selectedUser: null,
-        ownerId: interaction.user.id,
-        guildId: interaction.guild.id
-    });
-},
+        finishRow.addComponents(
+            new ButtonBuilder().setCustomId('tier_btn_toggle_filter').setLabel('未配置のみ表示').setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder().setCustomId('tier_btn_edit_names').setLabel('Tier名編集').setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder().setCustomId('tier_btn_show_unranked').setLabel('未配置メンバー').setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder().setCustomId('tier_btn_finish').setLabel('Finish').setStyle(ButtonStyle.Success)
+        );
+
+        // Send message
+        const message = await interaction.editReply({
+            content: 'Select a user and then click a Tier button!',
+            files: [attachment],
+            components: [row1, ...buttonRows]
+        });
+
+        // Store initial state
+        const { sessionManager } = require('../utils/sessionManager');
+        sessionManager.set(message.id, {
+            tierData,
+            tierLabels,
+            selectedUser: null,
+            ownerId: interaction.user.id,
+            guildId: interaction.guild.id,
+            filterUnranked: false // Track filter state
+        });
+    },
 };
