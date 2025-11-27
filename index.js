@@ -31,8 +31,18 @@ if (fs.existsSync(commandsPath)) {
     }
 }
 
-client.once('ready', () => {
+client.once('ready', async () => {
     console.log(`Ready! Logged in as ${client.user.tag}`);
+
+    // Fetch all guild members for all guilds
+    for (const guild of client.guilds.cache.values()) {
+        try {
+            await guild.members.fetch();
+            console.log(`Fetched ${guild.members.cache.size} members from ${guild.name}`);
+        } catch (error) {
+            console.error(`Failed to fetch members from ${guild.name}:`, error);
+        }
+    }
 });
 
 client.on('interactionCreate', async interaction => {
