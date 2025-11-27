@@ -2,7 +2,9 @@ const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
 
 // Register the font
-GlobalFonts.registerFromPath(path.join(__dirname, '..', 'fonts', 'Roboto-Bold.ttf'), 'Roboto');
+const fontPath = path.join(__dirname, '..', 'fonts', 'Roboto-Bold.ttf');
+const success = GlobalFonts.registerFromPath(fontPath, 'Roboto');
+console.log(`Font registration (${fontPath}): ${success ? 'Success' : 'Failed'}`);
 
 const DEFAULT_COLORS = [
     '#ff7f7f', // Red
@@ -44,7 +46,7 @@ async function drawTierList(tierData, tierLabels) {
 
         // Draw Tier Label Text
         ctx.fillStyle = '#000000';
-        ctx.font = 'bold 30px Roboto'; // Slightly smaller font for longer names
+        ctx.font = 'bold 30px Roboto, sans-serif'; // Fallback
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(tier, LABEL_WIDTH / 2, y + ROW_HEIGHT / 2);
